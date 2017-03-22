@@ -32,7 +32,11 @@
     "express-handlebars": "^3.0.0",
     "express-session": "^1.13.0",
     "knex": "^0.10.0",
+    "minimatch": "^3.0.3",
     "passport": "^0.3.2",
-    "pg": "^4.5.5"
+    "passport-local": "^1.0.0",
+    "pg": "^4.5.5",
+    "pug": "^2.0.0-beta11",
+    "to-iso-string": "0.0.2"
   }
 }

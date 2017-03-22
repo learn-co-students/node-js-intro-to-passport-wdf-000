@@ -4,6 +4,11 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const knex = require('knex');
 const handlebars = require('express-handlebars');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const flash = require('connect-flash');
 
 const ENV = process.env.NODE_ENV || 'development';
 const config = require('../knexfile');
@@ -11,8 +16,12 @@ const db = knex(config[ENV]);
 
 // Initialize Express.
 const app = express();
+app.use(flash());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
-app.use(passport.initialize());
+app.use(session({secret: 'our secret string'}));
+app.use(cookieParser());
+app.use(passport.initialize()); // <-- Register the Passport middleware.
 
 // Configure handlebars templates.
 app.engine('handlebars', handlebars({
@@ -32,10 +41,32 @@ const Post = require('./models/post');
 const User = require('./models/user');
 
 
-
+passport.use(new LocalStrategy((username, password, done) => {
+  User
+    .forge({ username: username })
+    .fetch()
+    .then((usr) => {
+      if (!usr) {
+        return done(null, false);
+      }
+      usr.validatePassword(password).then((valid) => {
+        if (!valid) {
+          return done(null, false);
+        }
+        return done(null, usr);
+      });
+    })
+    .catch((err) => {
+      return done(err);
+    });
+}));
 
 
 // ***** Server ***** //
+
+app.get('/login', (req, res) => {
+  res.render('login', { message: req.flash('error') });
+});
 
 app.get('/user/:id', (req,res) => {
   User
